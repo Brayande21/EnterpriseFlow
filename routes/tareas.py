@@ -14,6 +14,7 @@ router = APIRouter(
 
 
 # Consultar tareas
+
 @router.get("")
 def obtener_tareas():
     with conectar() as conexion:
@@ -27,7 +28,9 @@ def obtener_tareas():
                     t.prioridad,
                     p.nombre AS proyecto,
                     e.nombre AS empleado,
-                    t.fecha_entrega
+                    t.fecha_entrega,
+                    t.proyecto_id,
+                    t.empleado_id
                 FROM tareas t
                 JOIN proyectos p
                     ON t.proyecto_id = p.id
@@ -49,7 +52,9 @@ def obtener_tareas():
             "prioridad": fila[4],
             "proyecto": fila[5],
             "empleado": fila[6],
-            "fecha_entrega": fila[7]
+            "fecha_entrega": fila[7],
+            "proyecto_id": fila[8],
+            "empleado_id": fila[9]
         })
 
     return tareas_db
@@ -58,8 +63,10 @@ def obtener_tareas():
 # Crear tarea
 
 @router.post(
-    "",status_code=201,dependencies=[Depends(requerir_admin)])
-
+    "",
+    status_code=201,
+    dependencies=[Depends(requerir_admin)]
+)
 def crear_tarea(tarea: Tarea):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -118,13 +125,13 @@ def crear_tarea(tarea: Tarea):
         "mensaje": "Tarea creada correctamente"
     }
 
+
 # Actualizar tarea
 
 @router.put(
     "/{tarea_id}",
     dependencies=[Depends(requerir_admin)]
 )
-
 def actualizar_tarea(tarea_id: int, tarea: Tarea):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -201,12 +208,13 @@ def actualizar_tarea(tarea_id: int, tarea: Tarea):
         "mensaje": "Tarea actualizada correctamente"
     }
 
+
 # Eliminar tarea
+
 @router.delete(
     "/{tarea_id}",
     dependencies=[Depends(requerir_admin)]
 )
-
 def eliminar_tarea(tarea_id: int):
     with conectar() as conexion:
         with conexion.cursor() as cursor:

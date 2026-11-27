@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI, Depends
 from psycopg import Error
-
+from fastapi.middleware.cors import CORSMiddleware
 from routes.empleados import router as empleados_router
 from routes.proyectos import router as proyectos_router
 from routes.tareas import router as tareas_router
@@ -15,6 +15,17 @@ app = FastAPI(
     title="EnterpriseFlow API",
     description="Sistema de gestión empresarial",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 app.add_exception_handler(Error, database_exception_handler)

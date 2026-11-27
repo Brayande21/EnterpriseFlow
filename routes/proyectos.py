@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, Depends
 from database.conexion import conectar
 from models.proyecto import Proyecto
@@ -16,6 +15,7 @@ router = APIRouter(
 
 
 # Consultar proyectos
+
 @router.get("")
 def obtener_proyectos():
     with conectar() as conexion:
@@ -28,7 +28,8 @@ def obtener_proyectos():
                     p.estado,
                     e.nombre AS responsable,
                     p.fecha_inicio,
-                    p.fecha_entrega
+                    p.fecha_entrega,
+                    p.responsable_id
                 FROM proyectos p
                 LEFT JOIN empleados e
                     ON p.responsable_id = e.id
@@ -47,7 +48,8 @@ def obtener_proyectos():
             "estado": fila[3],
             "responsable": fila[4],
             "fecha_inicio": fila[5],
-            "fecha_entrega": fila[6]
+            "fecha_entrega": fila[6],
+            "responsable_id": fila[7]
         })
 
     return proyectos_db
@@ -55,7 +57,11 @@ def obtener_proyectos():
 
 # Crear proyecto
 
-@router.post("", status_code=201, dependencies=[Depends(requerir_admin)])
+@router.post(
+    "",
+    status_code=201,
+    dependencies=[Depends(requerir_admin)]
+)
 def crear_proyecto(proyecto: Proyecto):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -99,10 +105,12 @@ def crear_proyecto(proyecto: Proyecto):
     }
 
 
-
 # Actualizar proyecto
 
-@router.put("/{proyecto_id}", dependencies=[Depends(requerir_admin)])
+@router.put(
+    "/{proyecto_id}",
+    dependencies=[Depends(requerir_admin)]
+)
 def actualizar_proyecto(proyecto_id: int, proyecto: Proyecto):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -163,12 +171,16 @@ def actualizar_proyecto(proyecto_id: int, proyecto: Proyecto):
         "mensaje": "Proyecto actualizado correctamente"
     }
 
+
 # Eliminar proyecto
 
 @router.delete(
     "/{proyecto_id}",
     dependencies=[Depends(requerir_admin)],
-    responses={409: {"description": "El proyecto tiene tareas asociadas"}
+    responses={
+        409: {
+            "description": "El proyecto tiene tareas asociadas"
+        }
     }
 )
 def eliminar_proyecto(proyecto_id: int):
