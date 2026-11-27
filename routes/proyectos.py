@@ -1,12 +1,17 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database.conexion import conectar
 from models.proyecto import Proyecto
 from psycopg.errors import ForeignKeyViolation
+from core.dependencies import requerir_admin
 
 router = APIRouter(
     prefix="/proyectos",
-    tags=["Proyectos"]
+    tags=["Proyectos"],
+    responses={
+        404: {"description": "Proyecto o empleado no encontrado"},
+        500: {"description": "Error interno de la base de datos"}
+    }
 )
 
 
@@ -50,7 +55,7 @@ def obtener_proyectos():
 
 # Crear proyecto
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(requerir_admin)])
 def crear_proyecto(proyecto: Proyecto):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -97,7 +102,7 @@ def crear_proyecto(proyecto: Proyecto):
 
 # Actualizar proyecto
 
-@router.put("/{proyecto_id}")
+@router.put("/{proyecto_id}", dependencies=[Depends(requerir_admin)])
 def actualizar_proyecto(proyecto_id: int, proyecto: Proyecto):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -160,7 +165,12 @@ def actualizar_proyecto(proyecto_id: int, proyecto: Proyecto):
 
 # Eliminar proyecto
 
-@router.delete("/{proyecto_id}")
+@router.delete(
+    "/{proyecto_id}",
+    dependencies=[Depends(requerir_admin)],
+    responses={409: {"description": "El proyecto tiene tareas asociadas"}
+    }
+)
 def eliminar_proyecto(proyecto_id: int):
     try:
         with conectar() as conexion:

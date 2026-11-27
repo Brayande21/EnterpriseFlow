@@ -4,9 +4,11 @@ from database.conexion import conectar
 
 router = APIRouter(
     prefix="/dashboard",
-    tags=["Dashboard"]
+    tags=["Dashboard"],
+    responses={
+        500: {"description": "Error interno de la base de datos"}
+    }
 )
-
 
 @router.get("")
 def obtener_dashboard():

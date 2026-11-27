@@ -1,12 +1,16 @@
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database.conexion import conectar
 from models.empleado import Empleado
 from psycopg.errors import ForeignKeyViolation
+from core.dependencies import requerir_admin
 
 router = APIRouter(
     prefix="/empleados",
-    tags=["Empleados"]
+    tags=["Empleados"],
+    responses={
+        404: {"description": "Empleado no encontrado"},
+        500: {"description": "Error interno de la base de datos"}
+    }
 )
 
 
@@ -59,7 +63,7 @@ def buscar_empleado(empleado_id: int):
 
 
 # Crear empleado
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(requerir_admin)])
 def crear_empleado(empleado: Empleado):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -81,7 +85,7 @@ def crear_empleado(empleado: Empleado):
 
 
 # Actualizar empleado
-@router.put("/{empleado_id}")
+@router.put("/{empleado_id}", dependencies=[Depends(requerir_admin)])
 def actualizar_empleado(empleado_id: int, empleado: Empleado):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -111,7 +115,15 @@ def actualizar_empleado(empleado_id: int, empleado: Empleado):
 
 # Eliminar empleado
 
-@router.delete("/{empleado_id}")
+@router.delete(
+    "/{empleado_id}",
+    dependencies=[Depends(requerir_admin)],
+    responses={
+        409: {
+            "description": "El empleado tiene registros asociados"
+        }
+    }
+)
 def eliminar_empleado(empleado_id: int):
     try:
         with conectar() as conexion:

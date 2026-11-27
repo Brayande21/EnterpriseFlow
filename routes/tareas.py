@@ -1,11 +1,15 @@
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database.conexion import conectar
 from models.tarea import Tarea
+from core.dependencies import requerir_admin
 
 router = APIRouter(
     prefix="/tareas",
-    tags=["Tareas"]
+    tags=["Tareas"],
+    responses={
+        404: {"description": "Tarea, proyecto o empleado no encontrado"},
+        500: {"description": "Error interno de la base de datos"}
+    }
 )
 
 
@@ -53,7 +57,9 @@ def obtener_tareas():
 
 # Crear tarea
 
-@router.post("", status_code=201)
+@router.post(
+    "",status_code=201,dependencies=[Depends(requerir_admin)])
+
 def crear_tarea(tarea: Tarea):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -114,7 +120,11 @@ def crear_tarea(tarea: Tarea):
 
 # Actualizar tarea
 
-@router.put("/{tarea_id}")
+@router.put(
+    "/{tarea_id}",
+    dependencies=[Depends(requerir_admin)]
+)
+
 def actualizar_tarea(tarea_id: int, tarea: Tarea):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
@@ -192,7 +202,11 @@ def actualizar_tarea(tarea_id: int, tarea: Tarea):
     }
 
 # Eliminar tarea
-@router.delete("/{tarea_id}")
+@router.delete(
+    "/{tarea_id}",
+    dependencies=[Depends(requerir_admin)]
+)
+
 def eliminar_tarea(tarea_id: int):
     with conectar() as conexion:
         with conexion.cursor() as cursor:
