@@ -1,11 +1,13 @@
 import axios from 'axios'
 
+const API_URL = import.meta.env.VITE_API_URL || '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 10000
+  timeout: 60000
 })
 
 // Agregar automáticamente el token a las peticiones

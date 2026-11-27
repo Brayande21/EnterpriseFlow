@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { LoaderCircle } from 'lucide-react'
 
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Empleados from './pages/Empleados'
-import Proyectos from './pages/Proyectos'
-import Tareas from './pages/Tareas'
-import Configuracion from './pages/Configuracion'
-
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 
 import { obtenerPerfil } from './services/auth'
+
+// Carga diferida de módulos
+
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Empleados = lazy(() => import('./pages/Empleados'))
+const Proyectos = lazy(() => import('./pages/Proyectos'))
+const Tareas = lazy(() => import('./pages/Tareas'))
+const Configuracion = lazy(() => import('./pages/Configuracion'))
 
 interface Usuario {
   id: number
@@ -22,6 +24,25 @@ interface Usuario {
 }
 
 const TOKEN_KEY = 'enterpriseflow_token'
+
+// Indicador de carga de módulos
+
+function CargandoModulo() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+
+      <LoaderCircle
+        size={36}
+        className="animate-spin text-blue-600"
+      />
+
+      <p className="text-sm text-slate-500">
+        Cargando módulo...
+      </p>
+
+    </div>
+  )
+}
 
 function App() {
   const [token, setToken] = useState('')
@@ -162,7 +183,7 @@ function App() {
     }
   }, [])
 
-  // Pantalla de carga
+  // Pantalla de carga inicial
 
   if (cargando) {
     return (
@@ -257,7 +278,11 @@ function App() {
           menuAbierto={menuAbierto}
         />
 
-        {mostrarPagina()}
+        <Suspense fallback={<CargandoModulo />}>
+
+          {mostrarPagina()}
+
+        </Suspense>
 
       </div>
 
